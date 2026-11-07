@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f1ffe7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#10112b" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Archie Line">
+  <meta name="description" content="A private, offline habit tracker and alarm shaped around an architect's day.">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Archie Line</title>
+</head>
+<body>
+  <!-- page-load intro (once per launch) -->
+  <div id="intro" class="intro" aria-hidden="true">
+    <svg class="intro-mark" viewBox="0 0 100 100">
+      <defs><mask id="im-brush-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><path class="im-reveal" pathLength="100" d="M76 30 C66 16 40 14 27 28 C14 42 18 66 34 74 C50 82 72 76 79 60 C83 50 82 42 79 36"/></mask></defs>
+      <rect class="im-tile" width="100" height="100" rx="22"/>
+      <path class="im-brush" mask="url(#im-brush-mask)" d="M77.27 29.03 L76.56 27.90 L75.74 26.76 L74.87 25.67 L73.93 24.62 L72.93 23.62 L71.88 22.66 L70.77 21.75 L69.61 20.89 L68.40 20.08 L67.15 19.32 L65.85 18.62 L64.52 17.97 L63.15 17.37 L61.75 16.83 L60.31 16.35 L58.86 15.93 L57.37 15.57 L55.87 15.26 L54.35 15.02 L52.82 14.83 L51.28 14.71 L49.72 14.65 L48.16 14.64 L46.60 14.70 L45.03 14.82 L43.47 15.00 L41.91 15.23 L40.36 15.53 L38.82 15.92 L37.32 16.43 L35.83 17.00 L34.37 17.64 L32.94 18.33 L31.53 19.09 L30.15 19.91 L28.80 20.80 L27.49 21.76 L26.21 22.78 L24.99 23.87 L23.81 25.03 L22.69 26.24 L21.64 27.49 L20.67 28.79 L19.76 30.12 L18.92 31.48 L18.16 32.87 L17.47 34.30 L16.84 35.75 L16.29 37.22 L15.82 38.71 L15.41 40.22 L15.08 41.74 L14.82 43.27 L14.64 44.80 L14.52 46.34 L14.48 47.88 L14.50 49.42 L14.60 50.95 L14.76 52.47 L14.99 53.98 L15.28 55.47 L15.65 56.95 L16.07 58.41 L16.56 59.84 L17.11 61.25 L17.72 62.63 L18.38 63.98 L19.11 65.30 L19.89 66.58 L20.73 67.83 L21.62 69.04 L22.57 70.21 L23.58 71.34 L24.63 72.42 L25.74 73.45 L26.91 74.44 L28.13 75.37 L29.40 76.24 L30.72 77.06 L32.08 77.81 L33.46 78.48 L34.84 79.10 L36.25 79.66 L37.67 80.16 L39.11 80.61 L40.56 81.01 L42.02 81.34 L43.50 81.63 L44.98 81.85 L46.47 82.02 L47.97 82.14 L49.46 82.19 L50.96 82.19 L52.45 82.13 L53.94 82.02 L55.43 81.84 L56.90 81.61 L58.36 81.32 L59.81 80.97 L61.22 80.51 L62.61 79.99 L63.97 79.42 L65.31 78.79 L66.61 78.11 L67.88 77.38 L69.12 76.60 L70.32 75.77 L71.48 74.90 L72.60 73.98 L73.68 73.02 L74.71 72.02 L75.70 70.97 L76.65 69.89 L77.54 68.76 L78.39 67.60 L79.18 66.39 L79.92 65.15 L80.60 63.88 L81.22 62.57 L81.79 61.22 L82.08 60.31 L82.32 59.50 L82.55 58.70 L82.76 57.91 L82.95 57.13 L83.13 56.36 L83.29 55.60 L83.43 54.84 L83.56 54.09 L83.67 53.35 L83.76 52.62 L83.83 51.90 L83.88 51.19 L83.92 50.48 L83.94 49.78 L83.94 49.09 L83.92 48.41 L83.88 47.74 L83.83 47.08 L83.76 46.43 L83.67 45.79 L83.56 45.16 L83.45 44.54 L83.31 43.93 L83.16 43.34 L83.00 42.75 L82.82 42.17 L82.63 41.61 L82.44 41.06 L82.23 40.51 L82.01 39.98 L81.78 39.46 L81.54 38.95 L81.29 38.45 L81.04 37.96 L80.78 37.48 L80.51 37.01 L80.24 36.55 L79.96 36.10 L79.68 35.67 L78.32 36.33 L78.48 36.81 L78.63 37.28 L78.77 37.76 L78.89 38.24 L79.01 38.73 L79.12 39.22 L79.21 39.72 L79.30 40.22 L79.37 40.73 L79.43 41.24 L79.48 41.75 L79.52 42.27 L79.55 42.79 L79.57 43.32 L79.58 43.85 L79.59 44.39 L79.58 44.92 L79.56 45.47 L79.53 46.01 L79.49 46.57 L79.45 47.12 L79.39 47.69 L79.32 48.25 L79.25 48.83 L79.16 49.40 L79.06 49.99 L78.96 50.58 L78.83 51.18 L78.70 51.78 L78.55 52.40 L78.39 53.01 L78.22 53.64 L78.02 54.27 L77.82 54.91 L77.59 55.55 L77.35 56.21 L77.08 56.86 L76.80 57.53 L76.50 58.20 L76.21 58.78 L75.67 59.80 L75.08 60.77 L74.45 61.71 L73.76 62.60 L73.04 63.45 L72.27 64.26 L71.47 65.03 L70.63 65.76 L69.76 66.45 L68.85 67.10 L67.92 67.71 L66.96 68.28 L65.97 68.81 L64.96 69.31 L63.93 69.76 L62.88 70.18 L61.81 70.56 L60.73 70.90 L59.63 71.21 L58.53 71.49 L57.41 71.74 L56.30 72.00 L55.18 72.23 L54.05 72.43 L52.90 72.59 L51.76 72.72 L50.60 72.81 L49.44 72.86 L48.28 72.88 L47.12 72.85 L45.96 72.78 L44.80 72.68 L43.65 72.53 L42.51 72.33 L41.37 72.09 L40.25 71.81 L39.14 71.47 L38.04 71.09 L36.96 70.66 L35.92 70.19 L34.93 69.68 L33.99 69.12 L33.08 68.51 L32.22 67.85 L31.40 67.15 L30.62 66.40 L29.88 65.60 L29.19 64.76 L28.53 63.89 L27.93 62.98 L27.36 62.04 L26.84 61.07 L26.37 60.07 L25.93 59.04 L25.55 58.00 L25.20 56.93 L24.90 55.85 L24.65 54.75 L24.43 53.64 L24.26 52.52 L24.13 51.39 L24.05 50.26 L24.01 49.13 L24.00 47.99 L24.05 46.85 L24.13 45.72 L24.26 44.59 L24.43 43.46 L24.64 42.34 L24.90 41.23 L25.20 40.13 L25.56 39.04 L25.95 37.96 L26.40 36.90 L26.90 35.86 L27.45 34.83 L28.05 33.83 L28.71 32.85 L29.42 31.90 L30.19 30.97 L31.01 30.09 L31.87 29.26 L32.78 28.48 L33.72 27.75 L34.71 27.07 L35.73 26.44 L36.79 25.86 L37.88 25.34 L39.00 24.87 L40.15 24.45 L41.32 24.08 L42.49 23.69 L43.68 23.33 L44.90 23.02 L46.13 22.76 L47.37 22.55 L48.62 22.38 L49.89 22.27 L51.16 22.19 L52.43 22.17 L53.70 22.18 L54.97 22.25 L56.24 22.35 L57.50 22.50 L58.74 22.69 L59.98 22.93 L61.20 23.21 L62.41 23.53 L63.59 23.89 L64.76 24.30 L65.90 24.76 L67.02 25.25 L68.10 25.80 L69.16 26.39 L70.18 27.02 L71.17 27.70 L72.12 28.44 L73.02 29.22 L73.88 30.05 L74.73 30.97 Z"/>
+      <circle class="im-seal" cx="72" cy="24" r="6"/>
+      <path class="im-ground" d="M20.10 73.10 L22.11 73.08 L24.11 73.07 L26.12 73.06 L28.15 73.04 L30.18 73.03 L32.22 73.01 L34.27 73.03 L36.33 73.12 L38.40 73.23 L40.47 73.32 L42.55 73.36 L44.65 73.37 L46.74 73.37 L48.84 73.40 L50.94 73.48 L53.04 73.62 L55.15 73.76 L57.25 73.87 L59.36 73.88 L61.46 73.77 L63.57 73.64 L65.66 73.51 L67.75 73.40 L69.84 73.30 L71.91 73.19 L73.98 73.03 L76.04 72.80 L78.08 72.49 L80.10 72.14 L82.10 71.75 L81.90 70.25 L79.88 70.42 L77.87 70.53 L75.85 70.61 L73.82 70.69 L71.79 70.76 L69.75 70.82 L67.70 70.85 L65.64 70.80 L63.57 70.69 L61.50 70.52 L59.42 70.36 L57.34 70.28 L55.25 70.27 L53.16 70.28 L51.06 70.27 L48.96 70.20 L46.86 70.08 L44.76 69.93 L42.66 69.79 L40.57 69.72 L38.47 69.71 L36.37 69.75 L34.28 69.80 L32.20 69.82 L30.12 69.85 L28.05 69.94 L25.99 70.07 L23.94 70.28 L21.91 70.56 L19.90 70.90 Z"/>
+      <g class="im-figure">
+        <circle cx="50" cy="42" r="5"/>
+        <path d="M42.5 60.5 C42.5 52 45 49 50 49 C55 49 57.5 52 57.5 60.5 L55 60.5 L54.5 72 L51 72 L50.6 63 L49.4 63 L49 72 L45.5 72 L45 60.5 Z"/>
+        <g transform="rotate(-28 50 54.6)"><rect class="im-tube" x="36" y="52.1" width="28" height="5" rx="2.5"/></g>
+      </g>
+    </svg>
+    <p class="intro-word"><span>Archie</span> <span>Line</span></p>
+    <p class="intro-tag">draw your day</p>
+  </div>
+
+  <!-- living background: soft blobs + slowly floating architectural shapes, with parallax -->
+  <div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div class="shapes" aria-hidden="true">
+    <i class="sh sh-ring" style="--d:1.2"></i>
+    <i class="sh sh-semi" style="--d:0.7"></i>
+    <i class="sh sh-tri" style="--d:1.6"></i>
+    <i class="sh sh-arc" style="--d:0.9"></i>
+    <i class="sh sh-dot" style="--d:2"></i>
+    <i class="sh sh-grid" style="--d:0.5"></i>
+    <i class="sh sh-pill" style="--d:1.3"></i>
+  </div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <main id="view" class="view"></main>
+
+  <nav class="tabs" aria-label="Sections">
+    <span class="tab-ind" aria-hidden="true"></span>
+    <button data-view="today" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 9.5h16M8 3v4M16 3v4M9 14.5l2 2 4-4"/></svg>
+      <span>Today</span>
+    </button>
+    <button data-view="week">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></svg>
+      <span>Progress</span>
+    </button>
+    <button data-view="habits">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>
+      <span>Habits</span>
+    </button>
+    <button data-view="alarms">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7"/><path d="M12 9.5V13l2.5 1.5M4.5 5.5l3-2.5M19.5 5.5l-3-2.5"/></svg>
+      <span>Alarms</span>
+    </button>
+    <button data-view="settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <dialog id="sheet" class="sheet" aria-label="Details"></dialog>
+  <div id="overlay" class="overlay" hidden role="dialog" aria-modal="true"></div>
+
+  <noscript>Archie Line needs JavaScript to run.</noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
