@@ -16,6 +16,11 @@ export const ACTIVITIES = {
   tap: 'Tap 8 moving dots',
   math: 'Solve 3 quick sums',
   type: 'Type a short phrase',
+  memory: 'Memory grid — repeat 4 tiles',
+  countup: 'Count up — tap 1 to 9',
+  scale: 'Scale check — read a drawing scale',
+  scramble: 'Word scramble — architecture words',
+  trace: 'Steady line — trace a building outline',
 };
 
 export const ALARM_SOUNDS = [
