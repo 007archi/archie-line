@@ -1112,3 +1112,9 @@ body.bg-svg .blobs, body.bg-svg .shapes, body.bg-blobs .shapes { display: none; 
 .profile-id, .profile-card.empty .profile-id h2, .profile-card.empty .profile-id p { text-align: left; }
 .profile-card.empty .profile-id p { color: var(--muted); }
 .ess { font-weight: 800; letter-spacing: 0.02em; }
+
+/* alarm sound picker */
+.sound-preview-row { display: flex; align-items: center; gap: 12px; margin-top: -4px; }
+.sound-preview-row .ghost-btn { min-height: 40px; display: inline-flex; align-items: center; gap: 6px; }
+.sound-preview-row .ico { width: 14px; height: 14px; }
+.sound-hint { color: var(--muted); font-size: 12.5px; }

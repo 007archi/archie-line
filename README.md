@@ -34,6 +34,8 @@ Push notifications need the small server in `../push-server` (see its README). I
 ## Alarms
 Alarms tab. Each alarm rings at its set time shifted by a fresh random amount every day (default 10–15 min earlier or later; other windows in the alarm editor), and only stops after a short activity: 3 slow breaths, tapping 8 dots, 3 quick sums or typing a phrase. The daily shift is derived from the alarm id + date, so the push server (`../push-server/src/jitter.js`, kept identical by a test) rings at the same moment and re-alerts every 2 minutes until the app reports it done. With the app open (Bedside mode keeps the screen awake) it rings with sound. Code: `src/domain/alarms.js`, `src/ui/activities.js`, `src/app/sound.js`.
 
+**Alarm sounds:** each alarm picks one of 9 sounds (Classic beep, Pager, Buzzer, Siren, Lights out, Rising chimes, Bell tower, Morning marimba, Temple gong) and a volume (Gentle rise, Loud, Maximum), with a Preview button. Sounds run through drive, a soft clipper and a compressor for extra loudness; on iOS the page plays as media, so an open app is heard even on silent.
+
 ## More trackers
 Habit library (Health, Mind, Focus, Studio, Life) from the + button, a daily energy check-in, and a focus timer (▶ on any minutes habit) that logs the minutes when you stop.
 

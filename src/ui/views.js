@@ -4,7 +4,7 @@ import {
   dayProgress, goodDayStreak, cellState,
 } from '../domain/habits.js';
 import { formatWeekday, formatDate, formatShort, formatWeekdayInitial, addDays, weekday, startOfWeek, daysBetween } from '../domain/dates.js';
-import { SHIFT_PRESETS, ACTIVITIES, windowLabel } from '../domain/alarms.js';
+import { SHIFT_PRESETS, ACTIVITIES, ALARM_SOUNDS, ALARM_VOLUMES, soundOf, windowLabel } from '../domain/alarms.js';
 import { LIBRARY } from '../domain/library.js';
 import { THEMES, PACK_GROUPS, GROUP_LABELS, packById } from '../domain/themes.js';
 import { ROLES, hasProfile, initials, greeting, subtitle } from '../domain/profile.js';
@@ -286,6 +286,19 @@ export function alarmForm(a, isNew) {
       </select></label>
     </div>
     <fieldset class="field"><legend>Days</legend><div class="chips">${chips}</div></fieldset>
+    <div class="field-row">
+      <label class="field"><span>Sound</span><select name="sound">
+        ${ALARM_SOUNDS.map((s) => `<option value="${s.id}" ${s.id === soundOf(a).sound ? 'selected' : ''}>${s.label}</option>`).join('')}
+      </select></label>
+      <label class="field"><span>Volume</span><select name="volume">
+        ${ALARM_VOLUMES.map((v) => `<option value="${v.id}" ${v.id === soundOf(a).volume ? 'selected' : ''}>${v.label.replace(/ \(.*\)/, '')}</option>`).join('')}
+      </select></label>
+    </div>
+    <div class="sound-preview-row">
+      <button type="button" class="ghost-btn" data-act="sound-preview">${icon('play')} Preview</button>
+      <small class="sound-hint">${esc(ALARM_SOUNDS.find((s) => s.id === soundOf(a).sound)?.hint ?? '')}</small>
+    </div>
+    <p class="note small">Turn the iPhone volume up with the side buttons. With the app open (or in Bedside mode) the alarm plays even when the phone is on silent.</p>
     <label class="field"><span>To switch it off</span><select name="activity">
       ${Object.entries(ACTIVITIES).map(([k, v]) => `<option value="${k}" ${k === a.activity ? 'selected' : ''}>${v}</option>`).join('')}
     </select></label>

@@ -64,3 +64,14 @@ test('every library habit is a valid habit', () => {
   }
   assert.equal(new Set(all.map((x) => x.name)).size, all.length, 'no duplicate names');
 });
+
+test('alarm sounds: new alarms get a sound and volume, older saved alarms fall back to Classic / Loud', async () => {
+  const { ALARM_SOUNDS, ALARM_VOLUMES, soundOf, newAlarm: make } = await import('../src/domain/alarms.js');
+  assert.ok(ALARM_SOUNDS.length >= 8);
+  assert.equal(new Set(ALARM_SOUNDS.map((s) => s.id)).size, ALARM_SOUNDS.length);
+  assert.deepEqual(ALARM_VOLUMES.map((v) => v.id), ['rise', 'loud', 'max']);
+  const a = make();
+  assert.deepEqual(soundOf(a), { sound: 'classic', volume: 'loud' });
+  assert.deepEqual(soundOf({ id: 'old', time: '07:00' }), { sound: 'classic', volume: 'loud' });
+  assert.deepEqual(soundOf(make({ sound: 'bell', volume: 'max' })), { sound: 'bell', volume: 'max' });
+});

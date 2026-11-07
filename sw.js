@@ -1,6 +1,6 @@
 // Offline support: cache the app shell, serve from cache first, refresh in the background.
 // Bump VERSION whenever you deploy changed files so phones pick up the new build.
-const VERSION = 'studio-days-v0.16.0';
+const VERSION = 'studio-days-v0.17.1';
 const SHELL = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'src/main.js', 'src/app/tracker.js', 'src/app/push.js', 'src/app/sound.js',

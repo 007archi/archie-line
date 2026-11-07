@@ -18,13 +18,31 @@ export const ACTIVITIES = {
   type: 'Type a short phrase',
 };
 
+export const ALARM_SOUNDS = [
+  { id: 'classic', label: 'Classic beep', hint: 'loudest' },
+  { id: 'pager', label: 'Pager', hint: 'sharp, high' },
+  { id: 'buzzer', label: 'Buzzer', hint: 'low and insistent' },
+  { id: 'siren', label: 'Siren', hint: 'rising and falling' },
+  { id: 'lights', label: 'Lights out', hint: 'five start beeps, then launch' },
+  { id: 'chimes', label: 'Rising chimes', hint: 'bright' },
+  { id: 'bell', label: 'Bell tower', hint: 'ringing bells' },
+  { id: 'marimba', label: 'Morning marimba', hint: 'gentle melody' },
+  { id: 'gong', label: 'Temple gong', hint: 'calm, deep' },
+];
+export const ALARM_VOLUMES = [
+  { id: 'rise', label: 'Gentle rise (quiet to maximum in 30 s)' },
+  { id: 'loud', label: 'Loud' },
+  { id: 'max', label: 'Maximum' },
+];
+export const soundOf = (a) => ({ sound: a?.sound ?? 'classic', volume: a?.volume ?? 'loud' });
+
 const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
 
 export function newAlarm(fields = {}) {
   return {
     id: `a_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`,
     label: 'Wake up', time: '07:00', shiftMin: 10, shiftMax: 15,
-    days: [1, 2, 3, 4, 5, 6], activity: 'random', on: true, ...fields,
+    days: [1, 2, 3, 4, 5, 6], activity: 'random', sound: 'classic', volume: 'loud', on: true, ...fields,
   };
 }
 

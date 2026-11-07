@@ -8,7 +8,7 @@ import { VAULT_FORMAT } from './data/crypto.js';
 import { todayKey, addDays, startOfWeek, weekday } from './domain/dates.js';
 import { isDone, dayProgress } from './domain/habits.js';
 import { withDefaults, buildSchedule } from './domain/reminders.js';
-import { DEFAULT_ALARMS, SHIFT_PRESETS, newAlarm, ringMinute, ringingNow, alarmSchedule, isAlarmDay, minToTime } from './domain/alarms.js';
+import { DEFAULT_ALARMS, SHIFT_PRESETS, ALARM_SOUNDS, soundOf, newAlarm, ringMinute, ringingNow, alarmSchedule, isAlarmDay, minToTime } from './domain/alarms.js';
 import { LIBRARY } from './domain/library.js';
 import {
   todayView, progressView, habitsView, habitForm, settingsView, lockView, passcodeForm,
@@ -266,6 +266,7 @@ function askPasscode(opts, onSubmit) {
   });
 }
 sheet.addEventListener('close', () => {
+  if (!ringing) sound.stopRinging(); // end any sound preview
   if (pendingAsk) { pendingAsk.resolve(null); pendingAsk = null; }
 });
 
@@ -317,22 +318,22 @@ function checkAlarms() {
   if (ui.locked || ringing) return;
   const today = todayKey();
   const due = ringingNow(alarms(), today, weekday(today), nowMinute(), (id, d) => tracker.alarmDone(id, d));
-  if (due.length) startAlarm({ alarmId: due[0].id, date: today, label: due[0].label, activity: due[0].activity });
+  if (due.length) startAlarm({ alarmId: due[0].id, date: today, label: due[0].label, activity: due[0].activity, ...soundOf(due[0]) });
 }
 setInterval(checkAlarms, 15_000);
 
-function startAlarm({ alarmId, date, label, activity, test = false }) {
+function startAlarm({ alarmId, date, label, activity, sound: tone = 'classic', volume = 'loud', test = false }) {
   if (sheet.open) sheet.close();
-  ringing = { alarmId, date, label, activity, startedAt: Date.now(), test };
+  ringing = { alarmId, date, label, activity, tone, volume, startedAt: Date.now(), test };
   overlay.className = 'overlay';
   overlay.innerHTML = alarmOverlay(label, nowHHMM());
   overlay.hidden = false;
-  sound.startRinging(); // rings straight away if sound was unlocked earlier (Bedside mode); otherwise on the first tap
+  sound.startRinging({ sound: tone, volume }); // rings straight away if sound was unlocked earlier (Bedside mode); otherwise on the first tap
 }
 
 function beginActivity() {
   sound.unlock();
-  sound.startRinging();
+  sound.startRinging({ sound: ringing.tone, volume: ringing.volume });
   sound.softenRinging();
   overlay.classList.add('doing');
   const host = overlay.querySelector('.activity');
@@ -384,7 +385,7 @@ function handleAlarmUrl(href) {
   if (!ui.locked) {
     if (tracker.alarmDone(alarmId, date)) return;
     const a = alarms().find((x) => x.id === alarmId);
-    startAlarm({ alarmId, date, label: a?.label ?? 'Alarm', activity: a?.activity ?? 'random' });
+    startAlarm({ alarmId, date, label: a?.label ?? 'Alarm', activity: a?.activity ?? 'random', ...soundOf(a) });
   } else {
     startAlarm({ alarmId, date, label: 'Alarm', activity: 'random' }); // details are encrypted; ring anyway
   }
@@ -557,7 +558,7 @@ viewEl.addEventListener('click', async (e) => {
       case 'alarm-test': {
         const a = alarms()[0] ?? newAlarm();
         sound.unlock();
-        startAlarm({ alarmId: a.id, date: todayKey(), label: a.label, activity: a.activity, test: true });
+        startAlarm({ alarmId: a.id, date: todayKey(), label: a.label, activity: a.activity, ...soundOf(a), test: true });
         break;
       }
       case 'bedside': await startBedside(); break;
@@ -677,6 +678,10 @@ sheet.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-act]');
   const act = el?.dataset.act;
   if (act === 'cancel') sheet.close();
+  if (act === 'sound-preview') {
+    const f = sheet.querySelector('form').elements;
+    sound.preview(f.namedItem('sound').value, f.namedItem('volume').value);
+  }
   if (act === 'profile-photo-clear') setPhotoPreview('');
   if (act === 'pack') {
     setAppearance({ pack: el.dataset.v });
@@ -710,6 +715,13 @@ sheet.addEventListener('click', async (e) => {
 });
 
 sheet.addEventListener('change', async (e) => {
+  if (e.target.name === 'sound' || e.target.name === 'volume') {
+    const f = e.target.form.elements;
+    const hint = e.target.form.querySelector('.sound-hint');
+    if (hint) hint.textContent = ALARM_SOUNDS.find((s) => s.id === f.namedItem('sound').value)?.hint ?? '';
+    sound.preview(f.namedItem('sound').value, f.namedItem('volume').value);
+    return;
+  }
   if (e.target.dataset?.act !== 'profile-photo') return;
   const file = e.target.files?.[0];
   if (!file) return;
@@ -761,6 +773,7 @@ sheet.addEventListener('submit', async (e) => {
       time: f.namedItem('time').value,
       shiftMin: preset.min, shiftMax: preset.max,
       days, activity: f.namedItem('activity').value,
+      sound: f.namedItem('sound').value, volume: f.namedItem('volume').value,
     };
     const id = form.dataset.aid;
     const list = form.dataset.new ? [...alarms(), { ...newAlarm(fields), id }] : alarms().map((a) => (a.id === id ? { ...a, ...fields } : a));
