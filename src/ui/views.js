@@ -243,16 +243,87 @@ export function librarySheet(tracker) {
 }
 
 // ================= ALARMS =================
-function lockAlarmCard({ connected, url }) {
-  const steps = `<ol class="steps-list clock-steps">
-      <li><b>Allow alarm changes.</b> iPhone <b>Settings → Apps → Shortcuts → Advanced</b> → turn on <b>Allow Deleting Without Confirmation</b>.</li>
-      <li><b>New automation.</b> Open <b>Shortcuts → Automation → +</b> → <b>Time of Day</b> → <b>2:00 AM</b>, <b>Daily</b> → choose <b>Run Immediately</b> → <b>Create New Shortcut</b>.</li>
-      <li>Add <b>Get Contents of URL</b> and paste your link.</li>
-      <li>Add <b>Get All Alarms</b>, then <b>Repeat with Each</b>. Inside the repeat add <b>If</b> <i>Repeat Item → Label</i> <b>is</b> <code>Archie Line</code> → <b>Delete Alarms</b> (<i>Repeat Item</i>). This removes yesterday's alarm only.</li>
-      <li>After the repeat, add <b>If</b> <i>Contents of URL</i> <b>is not</b> <code>off</code> → <b>Create Alarm</b> at <i>Contents of URL</i>, label <code>Archie Line</code>.</li>
-      <li>Tap <b>Done</b>, then run it once to test: an <b>Archie Line</b> alarm should appear in the Clock app at today's shifted time.</li>
-    </ol>
-    <p class="fine">Action names can differ slightly between iOS versions (for example <b>Find Alarms</b> instead of Get All Alarms + If). Keep <b>Reminders</b> on: the repeating notification at the same moment is what opens Archie Line for the wake-up activity — tap it after you stop the Clock alarm.</p>`;
+// ---- Lock-screen alarm: visual Shortcuts setup guide (drawn iPhone screens, not screenshots)
+const tapRing = '<i class="tap-ring" aria-hidden="true"></i>';
+const iosRow = (label, right = '›', { tap = false, sub = '' } = {}) =>
+  `<div class="ios-row${tap ? ' is-tap' : ''}"><span>${label}${sub ? `<small>${sub}</small>` : ''}</span><b>${right}</b>${tap ? tapRing : ''}</div>`;
+const iosToggle = (on, tap = false) => `<i class="ios-toggle${on ? ' on' : ''}">${tap ? tapRing : ''}</i>`;
+const iosBlock = (colour, title, detail = '', { tap = false, indent = 0 } = {}) =>
+  `<div class="ios-block${tap ? ' is-tap' : ''}" style="--c:${colour};margin-left:${indent * 14}px"><i></i><span><b>${title}</b>${detail ? ` ${detail}` : ''}</span>${tap ? tapRing : ''}</div>`;
+const phone = (title, body, { back = '', action = '' } = {}) =>
+  `<div class="ios-phone"><div class="ios-bar">${back ? `<span class="ios-back">‹ ${back}</span>` : '<span></span>'}<b>${title}</b><span class="ios-act">${action}</span></div><div class="ios-body">${body}</div></div>`;
+const varChip = (t) => `<em class="ios-var">${t}</em>`;
+
+export const CLOCK_GUIDE_STEPS = [
+  {
+    title: 'Copy your link',
+    text: 'You will paste this private link into the shortcut in step 5. Copy it now — you can copy it again later.',
+    copies: [{ label: 'Copy link', key: 'url' }],
+    mock: phone('Archie Line', `<div class="ios-card"><small>YOUR PRIVATE LINK</small><code>https://studio-days-push…/ring/…</code><div class="ios-btn is-tap">Copy link${tapRing}</div></div>`),
+  },
+  {
+    title: 'Allow alarm changes',
+    text: 'Open the iPhone <b>Settings</b> app → <b>Apps</b> → <b>Shortcuts</b> → <b>Advanced</b>. Turn on <b>Allow Deleting Without Confirmation</b>, so the nightly shortcut can replace yesterday’s alarm without asking.',
+    mock: phone('Advanced', `${iosRow('Allow Running Scripts', iosToggle(false))}${iosRow('Allow Sharing Large Amounts of Data', iosToggle(false))}<div class="ios-row is-tap"><span>Allow Deleting Without Confirmation</span><b>${iosToggle(true, true)}</b></div>`, { back: 'Shortcuts' }),
+  },
+  {
+    title: 'Start a new automation',
+    text: 'Open the <b>Shortcuts</b> app, tap the <b>Automation</b> tab at the bottom, then <b>+</b> (top right). If you have no automations yet, tap <b>New Automation</b>.',
+    mock: phone('Automation', `<div class="ios-empty">No automations yet</div><div class="ios-tabbar"><span>Shortcuts</span><span class="is-tap on">Automation${tapRing}</span><span>Gallery</span></div>`, { action: `<span class="is-tap">+${tapRing}</span>` }),
+  },
+  {
+    title: 'Run it every night at 2:00 AM',
+    text: 'Choose <b>Time of Day</b>. Set <b>2:00 AM</b>, <b>Daily</b>, and choose <b>Run Immediately</b> (not “Run After Confirmation”). Tap <b>Next</b>, then <b>Create New Shortcut</b>.',
+    mock: phone('When', `${iosRow('Time of Day', '2:00 AM', { tap: true })}${iosRow('Repeat', 'Daily')}<div class="ios-sep"></div>${iosRow('Run Immediately', '✓', { tap: true })}${iosRow('Run After Confirmation', '')}`, { back: 'Back', action: 'Next' }),
+  },
+  {
+    title: 'Fetch today’s alarm time',
+    text: 'Tap <b>Add Action</b>, search <b>Get Contents of URL</b> and add it. Tap the URL field and <b>paste your link</b>. Leave the method as GET.',
+    copies: [{ label: 'Copy link', key: 'url' }],
+    mock: phone('New Shortcut', `${iosBlock('#2f7ee6', 'Get contents of', `<em class="ios-var is-tap">paste link${tapRing}</em>`)}<div class="ios-search">Search Actions: <b>Get Contents of URL</b></div>`, { action: 'Done' }),
+  },
+  {
+    title: 'Remove yesterday’s alarm',
+    text: 'Add <b>Get All Alarms</b>, then <b>Repeat with Each</b>. Inside the repeat add <b>If</b>: tap the first field → <b>Repeat Item</b> → <b>Label</b>; condition <b>is</b>; text <b>Archie Line</b>. Inside the If add <b>Delete Alarms</b> with <b>Repeat Item</b>. This only removes the alarm named Archie Line.',
+    copies: [{ label: 'Copy “Archie Line”', text: 'Archie Line' }],
+    mock: phone('New Shortcut', `${iosBlock('#2f7ee6', 'Get contents of', varChip('URL'))}${iosBlock('#f59e0b', 'Get all alarms')}${iosBlock('#8e8e93', 'Repeat with each item in', varChip('Alarms'))}${iosBlock('#8e8e93', 'If', `${varChip('Repeat Item · Label')} is <em class="ios-var is-tap">Archie Line${tapRing}</em>`, { indent: 1 })}${iosBlock('#f59e0b', 'Delete', varChip('Repeat Item'), { indent: 2 })}${iosBlock('#8e8e93', 'End If', '', { indent: 1 })}${iosBlock('#8e8e93', 'End Repeat')}`, { action: 'Done' }),
+  },
+  {
+    title: 'Create today’s alarm',
+    text: 'Below <b>End Repeat</b>, add <b>If</b>: first field <b>Contents of URL</b>, condition <b>is not</b>, text <b>off</b>. Inside it add <b>Create Alarm</b>: tap the time and choose <b>Contents of URL</b>, set the label to <b>Archie Line</b>. Tap <b>Done</b>.',
+    copies: [{ label: 'Copy “off”', text: 'off' }, { label: 'Copy “Archie Line”', text: 'Archie Line' }],
+    mock: phone('New Shortcut', `${iosBlock('#8e8e93', 'End Repeat')}${iosBlock('#8e8e93', 'If', `${varChip('Contents of URL')} is not <em class="ios-var">off</em>`)}${iosBlock('#f59e0b', 'Create alarm for', `${varChip('Contents of URL')} labelled <em class="ios-var is-tap">Archie Line${tapRing}</em>`, { indent: 1 })}${iosBlock('#8e8e93', 'End If')}`, { action: '<span class="is-tap">Done' + tapRing + '</span>' }),
+  },
+  {
+    title: 'Test it',
+    text: 'Open the automation and run the shortcut once with <b>▶</b>. Then open the <b>Clock</b> app: an <b>Archie Line</b> alarm should be there at today’s time below. If it is, you’re done — it now resets itself every night.',
+    check: true,
+    mock: phone('Alarm', `<div class="ios-alarm is-tap"><b class="ios-alarm-time">--:--</b><small>Archie Line</small>${iosToggle(true)}${tapRing}</div>`, { action: 'Edit' }),
+  },
+];
+
+/** One step of the guide, shown in the sheet. `expected` is today's time from the link (or null). */
+export function clockGuideSheet(step, { expected = null } = {}) {
+  const s = CLOCK_GUIDE_STEPS[step];
+  const n = CLOCK_GUIDE_STEPS.length;
+  const mock = s.check && expected ? s.mock.replace('--:--', expected === 'off' ? 'off today' : expected) : s.mock;
+  return `<div class="sheet-form guide-sheet" data-step="${step}">
+    <div class="sheet-grip"></div>
+    <div class="guide-head"><small>Step ${step + 1} of ${n}</small><button type="button" class="ghost-btn guide-close" data-act="cancel">Close</button></div>
+    <div class="guide-progress">${CLOCK_GUIDE_STEPS.map((_, i) => `<i class="${i < step ? 'done' : i === step ? 'on' : ''}"></i>`).join('')}</div>
+    <h2>${s.title}</h2>
+    <div class="guide-mock">${mock}</div>
+    <p class="guide-text">${s.text}</p>
+    ${s.copies ? `<div class="btn-row guide-copies">${s.copies.map((c) => `<button type="button" class="ghost-btn" data-act="guide-copy" ${c.key ? `data-key="${c.key}"` : `data-text="${esc(c.text)}"`}>${c.label}</button>`).join('')}</div>` : ''}
+    ${s.check ? `<div class="btn-row guide-copies"><button type="button" class="ghost-btn" data-act="guide-check">Today's time${expected ? `: ${expected}` : ''}</button></div>` : ''}
+    <div class="sheet-actions guide-nav">
+      ${step > 0 ? '<button type="button" class="ghost-btn" data-act="guide-prev">Back</button>' : '<span></span>'}
+      ${step < n - 1 ? '<button type="button" class="primary-btn" data-act="guide-next">Next</button>' : '<button type="button" class="primary-btn" data-act="guide-done">It worked</button>'}
+    </div>
+  </div>`;
+}
+
+function lockAlarmCard({ connected, url, done }) {
   let body;
   if (!connected) {
     body = `<p class="fine">First turn on <b>Reminders</b> in Settings — the link reads your alarm from the push server.</p>
@@ -263,10 +334,11 @@ function lockAlarmCard({ connected, url }) {
   } else {
     body = `<label class="field"><span>Your private link</span><input class="clock-url" readonly value="${esc(url)}" aria-label="Your Shortcuts link"></label>
       <div class="btn-row"><button class="primary-btn" data-act="clock-copy">Copy link</button><button class="ghost-btn" data-act="clock-check">Today's time</button><button class="ghost-btn" data-act="clock-link" title="Replace the link (the old one stops working)">New link</button></div>
-      <details class="clock-guide"><summary>Set up the Shortcuts automation (5 min, once)</summary>${steps}</details>`;
+      <button class="${done ? 'ghost-btn' : 'primary-btn'} wide guide-start" data-act="clock-guide">${done ? 'Show the setup steps again' : `Start the visual setup · ${CLOCK_GUIDE_STEPS.length} steps, about 5 min`}</button>
+      <p class="fine">Keep <b>Reminders</b> on: the notification at the same moment opens Archie Line for the wake-up activity — tap it after you stop the Clock alarm.</p>`;
   }
   return `<section class="card tone-glass lock-alarm-card">
-    <div class="card-title">${icon('alarm')}<h2>Lock-screen alarm</h2>${url ? '<span class="ok-pill lime">Link ready</span>' : ''}</div>
+    <div class="card-title">${icon('alarm')}<h2>Lock-screen alarm</h2>${done ? '<span class="ok-pill lime">Set up ✓</span>' : url ? '<span class="ok-pill">Link ready</span>' : ''}</div>
     ${body}
   </section>`;
 }

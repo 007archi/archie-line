@@ -12,7 +12,7 @@ import { DEFAULT_ALARMS, SHIFT_PRESETS, ALARM_SOUNDS, soundOf, newAlarm, ringMin
 import { LIBRARY } from './domain/library.js';
 import {
   todayView, progressView, habitsView, habitForm, settingsView, lockView, passcodeForm,
-  librarySheet, alarmsView, alarmForm, alarmOverlay, timerOverlay, bedsideOverlay, icon, profileForm, packSheet,
+  librarySheet, alarmsView, alarmForm, alarmOverlay, timerOverlay, bedsideOverlay, icon, profileForm, packSheet, clockGuideSheet, CLOCK_GUIDE_STEPS,
 } from './ui/views.js';
 import { resolveActivity, mountActivity } from './ui/activities.js';
 import { startStarryNight, stopStarryNight } from './ui/starry-night.js';
@@ -58,6 +58,15 @@ function setPhotoPreview(dataUrl) {
     ? `<img class="avatar lg" src="${dataUrl}" alt="">`
     : `<span class="avatar lg" aria-hidden="true">${ini || '?'}</span>`;
   form.querySelector('[data-act="profile-photo-clear"]').hidden = !dataUrl;
+}
+
+// ---------------------------------------------------------------- lock-screen alarm setup guide
+const guide = { step: 0, expected: null };
+function openGuide(step) {
+  guide.step = Math.max(0, Math.min(CLOCK_GUIDE_STEPS.length - 1, step));
+  sheet.innerHTML = clockGuideSheet(guide.step, { expected: guide.expected });
+  if (!sheet.open) sheet.showModal();
+  sheet.scrollTop = 0;
 }
 
 // ---------------------------------------------------------------- alarms data
@@ -147,7 +156,7 @@ function render(animate = false) {
     today: () => todayView(tracker, ui.day, today, { nextAlarm: nextAlarm(), profile: profile(), hour: new Date().getHours() }),
     week: () => progressView(tracker, ui.weekStart, today),
     habits: () => habitsView(tracker, today),
-    alarms: () => alarmsView(alarms(), { recordFor: (id) => tracker.alarmRecord(id, today), bedside: ui.bedside, clock: { connected: Boolean(tracker.setting('push')), url: tracker.setting('clockUrl') } }),
+    alarms: () => alarmsView(alarms(), { recordFor: (id) => tracker.alarmRecord(id, today), bedside: ui.bedside, clock: { connected: Boolean(tracker.setting('push')), url: tracker.setting('clockUrl'), done: Boolean(tracker.setting('clockSetupDone')) } }),
     settings: () => settingsView(tracker, {
       persisted: ui.persisted,
       standalone,
@@ -575,11 +584,14 @@ viewEl.addEventListener('click', async (e) => {
       case 'profile-edit': openProfile(); break;
       // --- lock-screen alarm (iPhone Clock via Shortcuts)
       case 'goto-settings': go('settings'); break;
+      case 'clock-guide': openGuide(0); break;
       case 'clock-link': {
         const conn = tracker.setting('push');
         if (!conn) { toast('Turn on Reminders first.'); break; }
+        const hadLink = Boolean(tracker.setting('clockUrl'));
         await tracker.saveSetting('clockUrl', await push.clockLink(conn));
-        toast('Link ready. Copy it into the Shortcuts automation.');
+        await tracker.saveSetting('clockSetupDone', false);
+        toast(hadLink ? 'New link ready — paste it into your shortcut (step 5); the old one no longer works.' : 'Link ready. Start the visual setup.');
         break;
       }
       case 'clock-copy': {
@@ -705,6 +717,22 @@ sheet.addEventListener('click', async (e) => {
     sound.preview(f.namedItem('sound').value, f.namedItem('volume').value);
   }
   if (act === 'profile-photo-clear') setPhotoPreview('');
+  if (act === 'guide-next' || act === 'guide-prev') openGuide(guide.step + (act === 'guide-next' ? 1 : -1));
+  if (act === 'guide-copy') {
+    const text = el.dataset.key === 'url' ? tracker.setting('clockUrl') : el.dataset.text;
+    try { await navigator.clipboard.writeText(text); toast('Copied.'); } catch { toast(text); }
+  }
+  if (act === 'guide-check') {
+    try { guide.expected = (await (await fetch(tracker.setting('clockUrl'), { cache: 'no-store' })).text()).trim(); } catch { guide.expected = null; toast('Could not reach the push server.'); }
+    if (guide.expected && !/^(\d\d:\d\d|off)$/.test(guide.expected)) { guide.expected = null; toast('The link no longer works — create a new one.'); }
+    openGuide(guide.step);
+  }
+  if (act === 'guide-done') {
+    await tracker.saveSetting('clockSetupDone', true);
+    sheet.close();
+    confetti();
+    toast('Lock-screen alarm is set up. It resets itself every night at 2:00 AM.');
+  }
   if (act === 'pack') {
     setAppearance({ pack: el.dataset.v });
     for (const b of sheet.querySelectorAll('.pack')) b.setAttribute('aria-checked', String(b === el));
