@@ -58,5 +58,11 @@ export async function disconnect(conn) {
   await sub?.unsubscribe();
 }
 
+/** A private, read-only link that returns today's alarm time ("06:48" or "off") for an iOS Shortcuts automation. */
+export async function clockLink(conn) {
+  const { key } = await call(conn, '/clock-key', 'POST', { id: conn.id });
+  return `${conn.serverUrl}/ring/${conn.id}/${key}`;
+}
+
 /** Tell the server an alarm was dismissed so it stops re-alerting. */
 export const alarmDone = (conn, alarmId, date) => call(conn, '/alarm/done', 'POST', { id: conn.id, alarmId, date });

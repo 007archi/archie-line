@@ -105,6 +105,21 @@ async function dueMessages(env, subId, s, now) {
   return out;
 }
 
+/**
+ * Today's ring time for one subscriber, for an iOS Shortcuts automation that sets the iPhone Clock alarm.
+ * Returns "HH:MM" for the earliest alarm ringing today (or the one named by `alarmId`), or "off".
+ * Exported for tests.
+ */
+export function ringToday(s, now, alarmId = '') {
+  const { dow, date } = localParts(now, s.tz);
+  const mins = s.schedule
+    .filter((r) => r.kind === 'alarm' && r.days.includes(dow) && (!alarmId || r.id === alarmId))
+    .map((r) => ringMinute(r, date));
+  if (!mins.length) return 'off';
+  const m = Math.min(...mins);
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
 /** Send everything due at `now`. Exported for tests. */
 export async function runDue(env, now, fetchImpl = fetch) {
   const subs = await loadSubs(env);
@@ -137,6 +152,16 @@ export default {
     try {
       if (route === 'GET /vapid') return json({ publicKey: env.VAPID_PUBLIC_KEY });
 
+      // Read-only link for an iOS Shortcuts automation: today's alarm time as plain text.
+      const ring = req.method === 'GET' && pathname.match(/^\/ring\/([0-9a-f]{32})\/([A-Za-z0-9_-]{16,64})$/);
+      if (ring) {
+        const text = (t, status = 200) => new Response(t, { status, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } });
+        const all = await loadSubs(env);
+        const s = all[ring[1]];
+        if (!s?.clockHash || !safeEqual(s.clockHash, await sha256hex(ring[2]))) return text('not found', 404);
+        return text(ringToday(s, new Date(), new URL(req.url).searchParams.get('alarm') ?? ''));
+      }
+
       const body = req.method === 'GET' ? {} : await req.json().catch(() => { throw new BadRequest('Expected JSON'); });
       const subs = await loadSubs(env);
 
@@ -145,7 +170,7 @@ export default {
         const id = (await sha256hex(subscription.endpoint)).slice(0, 32);
         check(subs[id] || Object.keys(subs).length < MAX_SUBSCRIBERS, 'This server is full');
         const token = b64u.enc(crypto.getRandomValues(new Uint8Array(32)));
-        subs[id] = { subscription, tz: validTz(body.tz), schedule: validSchedule(body.schedule ?? []), tokenHash: await sha256hex(token), updated: Date.now() };
+        subs[id] = { subscription, tz: validTz(body.tz), schedule: validSchedule(body.schedule ?? []), tokenHash: await sha256hex(token), clockHash: subs[id]?.clockHash, updated: Date.now() };
         await saveSubs(env, subs);
         return json({ id, token });
       }
@@ -168,6 +193,13 @@ export default {
         check(typeof body.alarmId === 'string' && /^\d{4}-\d\d-\d\d$/.test(body.date ?? ''), 'Bad alarm');
         await env.SUBS.put(doneKey(body.id, body.alarmId.slice(0, 40), body.date), '1', { expirationTtl: 2 * 86400 });
         return json({ ok: true });
+      }
+      if (route === 'POST /clock-key') {
+        const sub = await authorise(req, subs, body.id);
+        const key = b64u.enc(crypto.getRandomValues(new Uint8Array(24)));
+        sub.clockHash = await sha256hex(key); // only the hash is kept; a new key replaces the old link
+        await saveSubs(env, subs);
+        return json({ key });
       }
       if (route === 'POST /test') {
         const sub = await authorise(req, subs, body.id);

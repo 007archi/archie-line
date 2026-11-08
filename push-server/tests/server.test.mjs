@@ -2,7 +2,8 @@
 // The fake service DECRYPTS each message with the phone's private key, proving the RFC 8291 encryption is correct.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker, { runDue, localParts } from '../src/index.js';
+import worker, { runDue, localParts, ringToday } from '../src/index.js';
+import { ringMinute } from '../src/jitter.js';
 import { b64u, hmac, concat } from '../src/webpush.js';
 
 const te = new TextEncoder();
@@ -159,4 +160,38 @@ test('rejects non-push endpoints and bad schedules', async () => {
   assert.equal((await worker.fetch(req('POST', '/subscribe', { subscription: evil, tz: 'UTC', schedule: [] }), env)).status, 400);
   const bad = await worker.fetch(req('POST', '/subscribe', { subscription: phone.subscription, tz: 'UTC', schedule: [{ time: '25:00', days: [1] }] }), env);
   assert.equal(bad.status, 400);
+});
+
+test('ring-time link for the iPhone Clock: needs a key from the app, follows the synced alarm, says off on rest days', async () => {
+  const env = await makeEnv();
+  const phone = await makePhone();
+  const alarm = { kind: 'alarm', id: 'a_wake', time: '07:00', shiftMin: 10, shiftMax: 15, days: [1, 2, 3, 4, 5, 6], title: 'Wake up', body: 'b' };
+  const { id, token } = await (await worker.fetch(req('POST', '/subscribe', { subscription: phone.subscription, tz: 'Asia/Kolkata', schedule: [alarm] }), env)).json();
+  assert.equal((await worker.fetch(req('POST', '/clock-key', { id }, 'wrong-token'), env)).status, 401);
+  const { key } = await (await worker.fetch(req('POST', '/clock-key', { id }, token), env)).json();
+  assert.ok(key.length >= 16);
+
+  const get = (path) => worker.fetch(new Request(`https://push.example${path}`), env);
+  const res = await get(`/ring/${id}/${key}`);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('cache-control'), 'no-store');
+  const text = await res.text();
+  const { date, dow } = localParts(new Date(), 'Asia/Kolkata');
+  if (alarm.days.includes(dow)) {
+    const m = ringMinute(alarm, date);
+    assert.equal(text, `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`);
+    const diff = Math.abs(m - 7 * 60);
+    assert.ok(diff >= 10 && diff <= 15, `shift ${diff}`);
+  } else assert.equal(text, 'off');
+  assert.equal((await get(`/ring/${id}/${'x'.repeat(32)}`)).status, 404, 'wrong key');
+
+  // a fixed Sunday (rest day) and a fixed Monday, checked directly
+  const s = (await env.SUBS.get('subs', 'json'))[id];
+  assert.equal(ringToday(s, new Date('2026-11-08T00:30:00Z')), 'off');           // Sunday morning in India
+  assert.match(ringToday(s, new Date('2026-11-09T00:30:00Z')), /^0[6-7]:\d\d$/); // Monday
+  assert.equal(ringToday(s, new Date('2026-11-09T00:30:00Z'), 'nope'), 'off');
+
+  // re-subscribing (e.g. reminders turned off and on) keeps the link working
+  await worker.fetch(req('POST', '/subscribe', { subscription: phone.subscription, tz: 'Asia/Kolkata', schedule: [alarm] }), env);
+  assert.equal((await get(`/ring/${id}/${key}`)).status, 200);
 });

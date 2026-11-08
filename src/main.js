@@ -147,7 +147,7 @@ function render(animate = false) {
     today: () => todayView(tracker, ui.day, today, { nextAlarm: nextAlarm(), profile: profile(), hour: new Date().getHours() }),
     week: () => progressView(tracker, ui.weekStart, today),
     habits: () => habitsView(tracker, today),
-    alarms: () => alarmsView(alarms(), { recordFor: (id) => tracker.alarmRecord(id, today), bedside: ui.bedside }),
+    alarms: () => alarmsView(alarms(), { recordFor: (id) => tracker.alarmRecord(id, today), bedside: ui.bedside, clock: { connected: Boolean(tracker.setting('push')), url: tracker.setting('clockUrl') } }),
     settings: () => settingsView(tracker, {
       persisted: ui.persisted,
       standalone,
@@ -573,6 +573,27 @@ viewEl.addEventListener('click', async (e) => {
       case 'backdrop': setAppearance(el.dataset.v === 'galaxy' ? { backdrop: 'galaxy', theme: 'dark' } : { backdrop: el.dataset.v }); break;
       case 'pack': setAppearance({ pack: el.dataset.v }); toast(`Theme: ${packById(el.dataset.v).name}`); break;
       case 'profile-edit': openProfile(); break;
+      // --- lock-screen alarm (iPhone Clock via Shortcuts)
+      case 'goto-settings': go('settings'); break;
+      case 'clock-link': {
+        const conn = tracker.setting('push');
+        if (!conn) { toast('Turn on Reminders first.'); break; }
+        await tracker.saveSetting('clockUrl', await push.clockLink(conn));
+        toast('Link ready. Copy it into the Shortcuts automation.');
+        break;
+      }
+      case 'clock-copy': {
+        const url = tracker.setting('clockUrl');
+        try { await navigator.clipboard.writeText(url); toast('Link copied.'); } catch {
+          const input = viewEl.querySelector('.clock-url'); input?.select(); toast('Select the link and copy it.');
+        }
+        break;
+      }
+      case 'clock-check': {
+        const t = (await (await fetch(tracker.setting('clockUrl'), { cache: 'no-store' })).text()).trim();
+        toast(t === 'off' ? 'No alarm today.' : /^\d\d:\d\d$/.test(t) ? `Today the alarm rings at ${t}.` : 'The link no longer works — create a new one.');
+        break;
+      }
       case 'packs-open':
         sheet.innerHTML = packSheet(appearance.pack ?? 'studio');
         sheet.showModal();
@@ -592,6 +613,7 @@ viewEl.addEventListener('click', async (e) => {
       case 'push-off':
         await push.disconnect(tracker.setting('push'));
         await tracker.saveSetting('push', null);
+        await tracker.saveSetting('clockUrl', null); // the server forgets the phone, so the link stops working
         toast('Reminders are off.');
         break;
 

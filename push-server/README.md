@@ -20,6 +20,9 @@ You need a free Cloudflare account and Node.js.
 - Changing the VAPID keys disconnects phones; turn reminders off and on again in the app.
 - Tests: `node --test tests/` in this folder (nothing to install).
 
+## Lock-screen alarm link
+`POST /clock-key` (authorised by the phone's token) issues a random read-only key; only its hash is stored, and a new key replaces the old one. `GET /ring/<id>/<key>` returns today's alarm time in the phone's time zone as plain text (`HH:MM`, or `off` on days without an alarm; `?alarm=<id>` picks one alarm). Used by an iOS Shortcuts automation to set the iPhone Clock alarm.
+
 ## Current deployment
 - Live at `https://studio-days-push.archie-line.workers.dev` (Cloudflare Worker `studio-days-push`), already configured in `wrangler.toml` and pre-filled in the app (`src/app/push.js`).
 - The private key exists only as the Cloudflare secret `VAPID_PRIVATE_JWK`; it is not in this repository.

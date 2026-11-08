@@ -34,6 +34,8 @@ Push notifications need the small server in `push-server/` (see its README). It 
 ## Alarms
 Alarms tab. Each alarm rings at its set time shifted by a fresh random amount every day (default 10–15 min earlier or later; other windows in the alarm editor), and only stops after a short activity: 3 slow breaths, tapping 8 dots, 3 quick sums, typing a phrase, a memory grid, counting 1–9, a drawing-scale quiz, an architecture word scramble, or tracing a building outline. The daily shift is derived from the alarm id + date, so the push server (`push-server/src/jitter.js`, kept identical by a test) rings at the same moment and re-alerts every 2 minutes until the app reports it done. With the app open (Bedside mode keeps the screen awake) it rings with sound. Code: `src/domain/alarms.js`, `src/ui/activities.js`, `src/app/sound.js`.
 
+**Lock-screen alarm:** Alarms → Lock-screen alarm creates a private read-only link (`/ring/<id>/<key>` on the push server) that returns today's shifted time as text (`06:48` or `off`). A nightly iOS Shortcuts automation reads it, deletes yesterday's "Archie Line" Clock alarm and creates today's, so the iPhone's own alarm rings while locked or on silent. The repeating push notification at the same moment opens the app for the wake-up activity. Setup steps are shown in the card.
+
 **Alarm sounds:** each alarm picks one of 9 sounds (Classic beep, Pager, Buzzer, Siren, Lights out, Rising chimes, Bell tower, Morning marimba, Temple gong) and a volume (Gentle rise, Loud, Maximum), with a Preview button. Sounds run through drive, a soft clipper and a compressor for extra loudness; on iOS the page plays as media, so an open app is heard even on silent.
 
 ## More trackers

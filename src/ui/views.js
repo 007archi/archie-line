@@ -243,7 +243,35 @@ export function librarySheet(tracker) {
 }
 
 // ================= ALARMS =================
-export function alarmsView(alarms, { recordFor, bedside }) {
+function lockAlarmCard({ connected, url }) {
+  const steps = `<ol class="steps-list clock-steps">
+      <li><b>Allow alarm changes.</b> iPhone <b>Settings → Apps → Shortcuts → Advanced</b> → turn on <b>Allow Deleting Without Confirmation</b>.</li>
+      <li><b>New automation.</b> Open <b>Shortcuts → Automation → +</b> → <b>Time of Day</b> → <b>2:00 AM</b>, <b>Daily</b> → choose <b>Run Immediately</b> → <b>Create New Shortcut</b>.</li>
+      <li>Add <b>Get Contents of URL</b> and paste your link.</li>
+      <li>Add <b>Get All Alarms</b>, then <b>Repeat with Each</b>. Inside the repeat add <b>If</b> <i>Repeat Item → Label</i> <b>is</b> <code>Archie Line</code> → <b>Delete Alarms</b> (<i>Repeat Item</i>). This removes yesterday's alarm only.</li>
+      <li>After the repeat, add <b>If</b> <i>Contents of URL</i> <b>is not</b> <code>off</code> → <b>Create Alarm</b> at <i>Contents of URL</i>, label <code>Archie Line</code>.</li>
+      <li>Tap <b>Done</b>, then run it once to test: an <b>Archie Line</b> alarm should appear in the Clock app at today's shifted time.</li>
+    </ol>
+    <p class="fine">Action names can differ slightly between iOS versions (for example <b>Find Alarms</b> instead of Get All Alarms + If). Keep <b>Reminders</b> on: the repeating notification at the same moment is what opens Archie Line for the wake-up activity — tap it after you stop the Clock alarm.</p>`;
+  let body;
+  if (!connected) {
+    body = `<p class="fine">First turn on <b>Reminders</b> in Settings — the link reads your alarm from the push server.</p>
+      <button class="primary-btn" data-act="goto-settings">Open Settings</button>`;
+  } else if (!url) {
+    body = `<p class="fine">Creates a private link that tells the Shortcuts app today's shifted time, so the iPhone's own alarm rings — locked, on silent, no Bedside mode.</p>
+      <button class="primary-btn" data-act="clock-link">${icon('alarm')} Create my link</button>`;
+  } else {
+    body = `<label class="field"><span>Your private link</span><input class="clock-url" readonly value="${esc(url)}" aria-label="Your Shortcuts link"></label>
+      <div class="btn-row"><button class="primary-btn" data-act="clock-copy">Copy link</button><button class="ghost-btn" data-act="clock-check">Today's time</button><button class="ghost-btn" data-act="clock-link" title="Replace the link (the old one stops working)">New link</button></div>
+      <details class="clock-guide"><summary>Set up the Shortcuts automation (5 min, once)</summary>${steps}</details>`;
+  }
+  return `<section class="card tone-glass lock-alarm-card">
+    <div class="card-title">${icon('alarm')}<h2>Lock-screen alarm</h2>${url ? '<span class="ok-pill lime">Link ready</span>' : ''}</div>
+    ${body}
+  </section>`;
+}
+
+export function alarmsView(alarms, { recordFor, bedside, clock = {} }) {
   const cards = alarms.map((a) => {
     const rec = recordFor(a.id);
     return `<article class="card ${a.on ? 'tone-ink' : 'tone-glass'} alarm-card" data-aid="${a.id}">
@@ -261,9 +289,10 @@ export function alarmsView(alarms, { recordFor, bedside }) {
   }).join('');
   return `
     ${pageHead('Wake with intent', 'Alarms', `<button class="count-pill" data-act="alarm-new">${icon('plus')} New</button>`)}
+    ${lockAlarmCard(clock)}
     <section class="card tone-moss bedside-card">
       <div><p class="label">Bedside mode</p><h2>${bedside ? 'On' : 'Keep the app awake overnight'}</h2>
-      <p class="fine">Leave the phone on charge with Archie Line open, so the alarm rings with sound. Otherwise you get a notification that repeats every 2 minutes.</p></div>
+      <p class="fine">Optional: keep Archie Line open on charge to hear your chosen alarm sound. With the lock-screen alarm above you don't need it.</p></div>
       <button class="primary-btn on-moss" data-act="bedside">${icon('moon')} Start</button>
     </section>
     ${cards || '<p class="empty">No alarms yet.</p>'}
