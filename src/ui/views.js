@@ -257,25 +257,26 @@ const varChip = (t) => `<em class="ios-var">${t}</em>`;
 export const CLOCK_GUIDE_STEPS = [
   {
     title: 'Copy your link',
-    text: 'You will paste this private link into the shortcut in step 3. Copy it now — every step that needs it has a copy button too.',
+    text: 'Your private link tells the shortcut today’s alarm time. Every step that needs it has a copy button, so you can copy it again any time.',
     copies: [{ label: 'Copy link', key: 'url' }],
     mock: phone('Archie Line', `<div class="ios-card"><small>YOUR PRIVATE LINK</small><code>https://studio-days-push…/ring/…</code><div class="ios-btn is-tap">Copy link${tapRing}</div></div>`),
   },
   {
-    title: 'Create a new shortcut',
-    text: 'Open the <b>Shortcuts</b> app and go to <b>Shortcuts</b> (all shortcuts). Tap <b>+</b> to create a new shortcut. Tap its name at the top and call it <b>Archie Line Alarm</b>.',
-    copies: [{ label: 'Copy name', text: 'Archie Line Alarm' }],
-    mock: phone('All Shortcuts', `<div class="ios-grid"><span>Morning</span><span>Home</span><span>Notes</span></div>`, { action: `<span class="is-tap">+${tapRing}</span>` }),
+    title: 'Quick way: describe it (iOS 27)',
+    text: 'On iPhones with <b>Apple Intelligence</b> (iPhone 15 Pro, 16 or later): open <b>Shortcuts</b>, tap <b>+</b>, and paste the description below into the box that asks what the shortcut should do — your link is already in it. Check the result looks like the drawings in steps 4–5, then <b>jump to step 6</b>. No Apple Intelligence? Tap <b>Next</b> to build it by hand.',
+    copies: [{ label: 'Copy description', key: 'describe' }],
+    mock: phone('New Shortcut', `<div class="ios-card"><small>DESCRIBE YOUR SHORTCUT</small><div class="ios-describe is-tap">Create a shortcut named “Archie Line Alarm” that gets the contents of my link, deletes alarms labelled Archie Line…${tapRing}</div></div>`, { action: 'Done' }),
+    jump: 5,
   },
   {
-    title: 'Fetch today’s alarm time',
-    text: 'Tap the search field for actions and type <b>Get Contents of URL</b>. Add it, tap the URL field and <b>paste your link</b>.',
-    copies: [{ label: 'Copy link', key: 'url' }],
-    mock: phone('Archie Line Alarm', `${iosBlock('#2f7ee6', 'Get contents of', `<em class="ios-var is-tap">paste link${tapRing}</em>`)}<div class="ios-search">Search actions: <b>Get Contents of URL</b></div>`, { action: 'Done' }),
+    title: 'Or build it by hand',
+    text: 'In <b>Shortcuts</b> tap <b>+</b> → <b>New Shortcut</b> → <b>Rename</b> and type <b>Archie Line Alarm</b>. Tap <b>Add Action</b>, then search for <b>Get Contents of URL</b> and add it. Tap its URL field and <b>paste your link</b>. (To add more actions later, swipe up on the search field at the bottom.)',
+    copies: [{ label: 'Copy name', text: 'Archie Line Alarm' }, { label: 'Copy link', key: 'url' }],
+    mock: phone('Archie Line Alarm', `${iosBlock('#2f7ee6', 'Get contents of', `<em class="ios-var is-tap">paste link${tapRing}</em>`)}<div class="ios-search">Search actions: <b>Get Contents of URL</b></div>`, { back: 'Rename', action: 'Done' }),
   },
   {
     title: 'Remove yesterday’s alarm',
-    text: 'Search actions for <b>alarm</b>. Add the action that <b>finds</b> alarms (usually <b>Find Alarms</b>), tap <b>Add Filter</b> and set <b>Label is Archie Line</b>. Then add <b>Delete Alarms</b> — it uses the alarms just found. If your version has no filter, add <b>Repeat with Each</b> and an <b>If Label is Archie Line</b> around Delete instead.',
+    text: 'Swipe up on the search field at the bottom and search <b>alarm</b>. Add the action that <b>finds</b> alarms (usually <b>Find Alarms</b>), tap <b>Add Filter</b> and set <b>Label is Archie Line</b>. Then add <b>Delete Alarms</b> — it uses the alarms just found. If your version has no filter, add <b>Repeat with Each</b> and an <b>If Label is Archie Line</b> around Delete instead.',
     copies: [{ label: 'Copy “Archie Line”', text: 'Archie Line' }],
     mock: phone('Archie Line Alarm', `${iosBlock('#2f7ee6', 'Get contents of', varChip('URL'))}${iosBlock('#f59e0b', 'Find Alarms where', `Label is <em class="ios-var is-tap">Archie Line${tapRing}</em>`)}${iosBlock('#f59e0b', 'Delete', varChip('Alarms'))}<div class="ios-search">Search actions: <b>alarm</b></div>`, { action: 'Done' }),
   },
@@ -287,7 +288,7 @@ export const CLOCK_GUIDE_STEPS = [
   },
   {
     title: 'Run it every night at 2:00 AM',
-    text: 'Open your <b>Archie Line Alarm</b> shortcut, tap <b>Edit</b>, then <b>Automation</b>. Choose <b>Time of Day</b>, set <b>2:00 AM</b> and <b>Daily</b>. (On older iOS: Automation tab → <b>+</b> → Time of Day → Run Immediately → pick this shortcut.)',
+    text: 'Open your <b>Archie Line Alarm</b> shortcut, tap <b>Edit</b>, then <b>Automation</b>. Choose <b>Time of Day</b>, set <b>2:00 AM</b> and <b>Daily</b>. You can see it later under <b>Automation</b> in the Shortcuts app. (iOS 17 and older: Automation tab → <b>+</b> → Time of Day → Run Immediately → pick this shortcut.)',
     mock: phone('Automation', `${iosRow('Time of Day', '2:00 AM', { tap: true })}${iosRow('Repeat', 'Daily')}${iosRow('Arrive', '')}${iosRow('Alarm', '')}`, { back: 'Edit', action: 'Done' }),
   },
   {
@@ -297,7 +298,7 @@ export const CLOCK_GUIDE_STEPS = [
   },
   {
     title: 'Test it',
-    text: 'Run the shortcut once with <b>▶</b>. Then open the <b>Clock</b> app: an <b>Archie Line</b> alarm should be there at today’s time below. If it is, you’re done — it resets itself every night. If any screen looked different, send a screenshot and the guide will be updated.',
+    text: 'Open the shortcut and tap the <b>Run</b> button (▶) once. Then open the <b>Clock</b> app: an <b>Archie Line</b> alarm should be there at today’s time below. If it is, you’re done — it resets itself every night. If any screen looked different, send a screenshot and the guide will be updated.',
     check: true,
     mock: phone('Alarm', `<div class="ios-alarm is-tap"><b class="ios-alarm-time">--:--</b><small>Archie Line</small>${iosToggle(true)}${tapRing}</div>`, { action: 'Edit' }),
   },
@@ -319,6 +320,7 @@ export function clockGuideSheet(step, { expected = null } = {}) {
     ${s.check ? `<div class="btn-row guide-copies"><button type="button" class="ghost-btn" data-act="guide-check">Today's time${expected ? `: ${expected}` : ''}</button></div>` : ''}
     <div class="sheet-actions guide-nav">
       ${step > 0 ? '<button type="button" class="ghost-btn" data-act="guide-prev">Back</button>' : '<span></span>'}
+      ${s.jump != null ? `<button type="button" class="ghost-btn" data-act="guide-jump" data-to="${s.jump}">I did this → step ${s.jump + 1}</button>` : ''}
       ${step < n - 1 ? '<button type="button" class="primary-btn" data-act="guide-next">Next</button>' : '<button type="button" class="primary-btn" data-act="guide-done">It worked</button>'}
     </div>
   </div>`;

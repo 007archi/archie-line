@@ -718,8 +718,13 @@ sheet.addEventListener('click', async (e) => {
   }
   if (act === 'profile-photo-clear') setPhotoPreview('');
   if (act === 'guide-next' || act === 'guide-prev') openGuide(guide.step + (act === 'guide-next' ? 1 : -1));
+  if (act === 'guide-jump') openGuide(Number(el.dataset.to));
   if (act === 'guide-copy') {
-    const text = el.dataset.key === 'url' ? tracker.setting('clockUrl') : el.dataset.text;
+    const link = tracker.setting('clockUrl');
+    if ((el.dataset.key === 'url' || el.dataset.key === 'describe') && !link) { toast('Create your link first (Alarms → Lock-screen alarm).'); return; }
+    const text = el.dataset.key === 'url' ? link
+      : el.dataset.key === 'describe' ? `Create a shortcut named "Archie Line Alarm" that: 1) gets the contents of the URL ${link}; 2) finds all alarms whose label is "Archie Line" and deletes them; 3) if the contents of the URL is not "off", adds an alarm at the time given by the contents of the URL, with the label "Archie Line".`
+      : el.dataset.text;
     try { await navigator.clipboard.writeText(text); toast('Copied.'); } catch { toast(text); }
   }
   if (act === 'guide-check') {

@@ -1208,3 +1208,6 @@ body.bg-svg .blobs, body.bg-svg .shapes, body.bg-blobs .shapes { display: none; 
 
 .ios-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .ios-grid span { background: #fff; border-radius: 10px; padding: 14px 8px; color: #8e8e93; font-size: 11px; }
+
+.ios-describe { position: relative; background: #f2f2f7; border-radius: 10px; padding: 10px; font-size: 12px; line-height: 1.4; color: #111; }
+.guide-nav { flex-wrap: wrap; gap: 8px; }
