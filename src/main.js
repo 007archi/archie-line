@@ -155,7 +155,7 @@ function render(animate = false) {
       autoLock: tracker.setting('autoLock') ?? 1,
       reminders: reminders(),
       conn: tracker.setting('push') ?? null,
-      serverUrl: tracker.setting('pushUrl'),
+      serverUrl: tracker.setting('pushUrl') || push.DEFAULT_PUSH_URL,
       support: push.pushSupport(),
       appearance: { theme: appearance.theme ?? 'auto', backdrop: appearance.backdrop ?? 'galaxy', pack: appearance.pack ?? 'studio' },
       profile: profile(),

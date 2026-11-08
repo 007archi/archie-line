@@ -1,4 +1,7 @@
 // Talks to the Archie Line push server and the browser's Push API.
+
+/** Your own push server (Cloudflare Worker), pre-filled in Settings → Reminders. */
+export const DEFAULT_PUSH_URL = 'https://studio-days-push.archie-line.workers.dev';
 // What the server learns: your push address (an opaque URL from Apple), your time zone and the reminder schedule.
 
 function b64urlToBytes(s) {
