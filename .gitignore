@@ -1,0 +1,5 @@
+# local Cloudflare tool cache (contains account details)
+.wrangler/
+node_modules/
+.dev.vars
+*.jwk

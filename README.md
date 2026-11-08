@@ -6,7 +6,7 @@ A private, offline habit tracker shaped around an architect's day. No account, n
 
 ## Run locally
     python -m http.server 8765
-Open http://localhost:8765. Logic tests: `node --test tests/` (24 tests; ../push-server has 6 more)
+Open http://localhost:8765. Logic tests: `node --test tests/` (31 tests; `push-server/` has 6 more)
 
 ## Put it on your iPhone
 iOS only installs web apps served over HTTPS, so host the folder on any free static host:
@@ -29,10 +29,10 @@ After changing files, bump `VERSION` in `sw.js`, redeploy, then open the app twi
 Settings → Encryption → Encrypt my data. Everything (habits, check-ins, notes, settings) is kept as one AES-256-GCM blob, keyed from your passcode with PBKDF2-SHA256 (600,000 rounds). The key lives only in memory while unlocked; the app re-locks after the auto-lock delay. A forgotten passcode cannot be recovered. Code: `src/data/crypto.js`, `src/data/repository.js`.
 
 ## Reminders
-Push notifications need the small server in `../push-server` (see its README). It only receives reminder times and generic text, never habit data. Reminder rules: `src/domain/reminders.js`; client: `src/app/push.js`; notification display: `sw.js`.
+Push notifications need the small server in `push-server/` (see its README). It only receives reminder times and generic text, never habit data. Reminder rules: `src/domain/reminders.js`; client: `src/app/push.js`; notification display: `sw.js`.
 
 ## Alarms
-Alarms tab. Each alarm rings at its set time shifted by a fresh random amount every day (default 10–15 min earlier or later; other windows in the alarm editor), and only stops after a short activity: 3 slow breaths, tapping 8 dots, 3 quick sums, typing a phrase, a memory grid, counting 1–9, a drawing-scale quiz, an architecture word scramble, or tracing a building outline. The daily shift is derived from the alarm id + date, so the push server (`../push-server/src/jitter.js`, kept identical by a test) rings at the same moment and re-alerts every 2 minutes until the app reports it done. With the app open (Bedside mode keeps the screen awake) it rings with sound. Code: `src/domain/alarms.js`, `src/ui/activities.js`, `src/app/sound.js`.
+Alarms tab. Each alarm rings at its set time shifted by a fresh random amount every day (default 10–15 min earlier or later; other windows in the alarm editor), and only stops after a short activity: 3 slow breaths, tapping 8 dots, 3 quick sums, typing a phrase, a memory grid, counting 1–9, a drawing-scale quiz, an architecture word scramble, or tracing a building outline. The daily shift is derived from the alarm id + date, so the push server (`push-server/src/jitter.js`, kept identical by a test) rings at the same moment and re-alerts every 2 minutes until the app reports it done. With the app open (Bedside mode keeps the screen awake) it rings with sound. Code: `src/domain/alarms.js`, `src/ui/activities.js`, `src/app/sound.js`.
 
 **Alarm sounds:** each alarm picks one of 9 sounds (Classic beep, Pager, Buzzer, Siren, Lights out, Rising chimes, Bell tower, Morning marimba, Temple gong) and a volume (Gentle rise, Loud, Maximum), with a Preview button. Sounds run through drive, a soft clipper and a compressor for extra loudness; on iOS the page plays as media, so an open app is heard even on silent.
 

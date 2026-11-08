@@ -1,0 +1,17 @@
+# Cloudflare Worker that sends Archie Line reminders. See README.md for setup.
+name = "studio-days-push"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[triggers]
+crons = ["* * * * *"]   # every minute; reminders are matched to the minute in each phone's time zone
+
+[[kv_namespaces]]
+binding = "SUBS"
+id = "b0c9c62fad3d4b49ad2773d3a2b84e33"
+
+[vars]
+VAPID_PUBLIC_KEY = "BA45UBg3HNGjKenVgaZBaGY6oOB6jRAw41hUp3YbpH4-YzjqU7mNDmP7yUUplG8KwrgX2RfuKoHXZiziuVDXYcg"
+VAPID_SUBJECT = "https://007archi.github.io/archie-line"   # contact for push services (the app's address, not an email)
+ALLOWED_ORIGIN = "https://007archi.github.io"  # where the app is hosted (no trailing slash)
+# VAPID_PRIVATE_JWK is a secret: npx wrangler secret put VAPID_PRIVATE_JWK
